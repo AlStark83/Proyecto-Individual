@@ -1,30 +1,31 @@
 require('dotenv').config();
+// const { videogame, genre } = require('./models');
 const { Sequelize } = require('sequelize');
 const fs = require('fs');
 const path = require('path');
 const {
   DB_USER, DB_PASSWORD, DB_HOST,
 } = process.env;
-// const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname')
-// const sequelize = new Sequelize(`postgres://${DB_USER}:${DB_PASSWORD}:${DB_HOST}/videogames`, {
-//   logging: false, // set to console.log to see the raw SQL queries
-//   native: false, // lets Sequelize know we can use pg-native for ~30% more speed
-// });
-const sequelize = new Sequelize('videogames', DB_USER, DB_PASSWORD, {
-  host: 'localhost',
+
+// const sequelize = new Sequelize(`postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/videogame`, {
+//     logging: false,  // set to console.log to see the raw SQL queries
+//     native: false, // lets Sequelize know we can use pg-native for ~30% more speed
+//   });
+
+  const sequelize = new Sequelize('videogames', DB_USER, DB_PASSWORD, {
+  host: DB_HOST,
   dialect: /* one of 'mysql' | */'postgres'/* | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
 });
-
 const basename = path.basename(__filename);
 
 const modelDefiners = [];
 
 // Leemos todos los archivos de la carpeta Models, los requerimos y agregamos al arreglo modelDefiners
 fs.readdirSync(path.join(__dirname, '/models'))
-  .filter((file) => (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js'))
-  .forEach((file) => {
-    modelDefiners.push(require(path.join(__dirname, '/models', file)));
-  });
+.filter((file) => (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js'))
+.forEach((file) => {
+  modelDefiners.push(require(path.join(__dirname, '/models', file)));
+});
 
 // Injectamos la conexion (sequelize) a todos los modelos
 modelDefiners.forEach(model => model(sequelize));
@@ -35,12 +36,14 @@ sequelize.models = Object.fromEntries(capsEntries);
 
 // En sequelize.models están todos los modelos importados como propiedades
 // Para relacionarlos hacemos un destructuring
-const { Videogame, Genres } = sequelize.models;
+
+const { Videogame, Genre } = sequelize.models;
 
 // Aca vendrian las relaciones
 // Product.hasMany(Reviews);
-Genres.belongsToMany(Videogame, {through: 'videogame_genre'});
-Videogame.belongsToMany(Genres, {through: 'videogame_genre'});
+
+Genre.belongsToMany(Videogame, {through : "videogame_genre"});
+Videogame.belongsToMany(Genre, {through : "videogame_genre"});
 
 module.exports = {
   ...sequelize.models, // para poder importar los modelos así: const { Product, User } = require('./db.js');
