@@ -13,27 +13,23 @@ module.exports = (sequelize) => {
     name: {
       type: DataTypes.STRING,
       allowNull: false,
-    // },
-    // description: {
-    //   type: DataTypes.STRING,
-    //   allowNull: false,
+    },
+    description: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     released: {
       type: DataTypes.STRING,
       allowNull: true,
     },
     rating: {
-      type: DataTypes.STRING,
+      type: DataTypes.FLOAT,
       allowNull: true,
-    },
-    platforms: {
-      type: DataTypes.ARRAY(DataTypes.STRING),
-      allowNull: false,
     },
     createdInDb: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: false
+      defaultValue: true
     }
 
   });

@@ -1,15 +1,17 @@
+require('dotenv').config();
 const { Router } = require('express');
+const { API_KEY } = process.env;
 // Importar todos los routers;
 // Ejemplo: const authRouter = require('./auth.js');
 const axios = require('axios');
-const {Genre, Videogame} = require('../db')
+const {Genre, Platform, Videogame} = require('../db')
 
 const router = Router();
-
+const URLgames = `https://api.rawg.io/api/games?key=${API_KEY}`; 
 // Configurar los routers
 // Ejemplo: router.use('/auth', authRouter);
 const getApiInfo = async () => {
-    const apiUrl = await axios.get('https://api.rawg.io/api/games?key=e3a7fece4bc44e708d9fdea865d2697a',{headers: {"Accept-Encoding": "gzip,deflate,compress"}});     
+    const apiUrl = await axios.get(URLgames,{headers: {"Accept-Encoding": "gzip,deflate,compress"}});     
         
     const apiInfo = await apiUrl.data.results.map(el =>{
         return {
@@ -17,6 +19,7 @@ const getApiInfo = async () => {
             released: el.released,
             rating: el.rating,
             platfomrs: el.parent_platforms.map(el => el.platform.name),
+            genres: el.genres.map(el => el.name)
         }
     });
     return apiInfo;
@@ -30,6 +33,11 @@ const getDbInfo = async () => {
             through:{
                 attributes: [],
             },
+            model: Platform,
+            attributes: ['name'],
+            through:{
+                attributes: [],
+            }
         }
     })
 }
@@ -41,7 +49,8 @@ const getAllVideogames = async  () => {
     return infoTotal;
 }
 
-router.get('/videogames', async (req, res) => {
+router
+.get('/videogames', async (req, res) => {
     const name = req.query.name;
     let videogamesTotal = await getAllVideogames();
     if (name) {
@@ -53,5 +62,62 @@ router.get('/videogames', async (req, res) => {
         res.status(200).send(videogamesTotal)
     }
 })
+.get('/genres', async (req, res) =>{
+    const genresApi = await axios.get(URLgames,{headers: {"Accept-Encoding": "gzip,deflate,compress"}})
+    const genres = genresApi.data.results.map(el => el.genres);
+    const genresEach = genres.map(el => {
+       for(let i = 0; i < el.length; i++) {return el[i].name}
+    })
+    console.log(genresEach)
+    genresEach.forEach(el  => {
+        Genre.findOrCreate({
+            where: { name: el }
+        })        
+    })
+    const allGenres = await Genre.findAll();
+    res.send(allGenres);
+})
+.get('/platforms', async (req, res) =>{
+    const platformsApi = await axios.get(URLgames,{headers: {"Accept-Encoding": "gzip,deflate,compress"}})
+    const platforms = platformsApi.data.results.map(el => el.platforms)
+    const platformEach = platforms.map(el => {
+       for(let i = 0; i < el.length; i++) {return el[i].platform.name}
+    })
+    console.log(platformEach)
+    platformEach.forEach(el  => {
+        Platform.findOrCreate({
+            where: { name: el }
+        })        
+    })
+    const allPlatforms = await Platform.findAll();
+    res.send(allPlatforms);
+});
+
+router.post('/videogames', async (req,res) =>{
+    let {
+        name,
+        description,
+        released,
+        rating,
+        platforms,
+        createdInDb,
+        genre
+    } = req.body;
+
+    let videogameCreated = await Videogame.create({
+        name,
+        description,
+        released,
+        rating,
+        createdInDb,
+    })
+
+    let genreDB =  await Genre.findAll({ where: { name: genre} });
+    videogameCreated.addGenre(genreDB)
+    let platformDB =  await Platform.findAll({ where: { name: platforms} });
+    videogameCreated.addGenre(platformDB);
+    res.send('Videojuego agregado con éxito')
+})
+
 
 module.exports = router;
