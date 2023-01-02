@@ -19,7 +19,8 @@ const getApiInfo = async () => {
             released: el.released,
             rating: el.rating,
             platfomrs: el.parent_platforms.map(el => el.platform.name),
-            genres: el.genres.map(el => el.name)
+            genres: el.genres.map(el => el.name),
+            image: el.background_image
         }
     });
     return apiInfo;
