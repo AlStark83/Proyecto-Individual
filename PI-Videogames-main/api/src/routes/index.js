@@ -62,6 +62,16 @@ router
         res.status(200).send(videogamesTotal)
     }
 })
+.get('/videogames/:id', async (req, res) => {
+    const id = req.params.id;
+    const videogamesTotal = await getAllVideogames();
+    if(id){
+        let videogameId = await videogamesTotal.filter(el => el.id == id);
+        videogameId.length?
+        res.status(200).json(videogameId) :
+        res.status(404).send('Videojuego no encontrado');    
+    }
+})
 .get('/genres', async (req, res) =>{
     const genresApi = await axios.get(URLgames,{headers: {"Accept-Encoding": "gzip,deflate,compress"}})
     const genres = genresApi.data.results.map(el => el.genres);
@@ -91,9 +101,8 @@ router
     })
     const allPlatforms = await Platform.findAll();
     res.send(allPlatforms);
-});
-
-router.post('/videogames', async (req,res) =>{
+})
+.post('/videogames', async (req,res) =>{
     let {
         name,
         description,
