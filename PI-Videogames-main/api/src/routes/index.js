@@ -15,12 +15,14 @@ const getApiInfo = async () => {
         
     const apiInfo = await apiUrl.data.results.map(el =>{
         return {
+            id: el.id,
             name: el.name,
             released: el.released,
             rating: el.rating,
             platfomrs: el.parent_platforms.map(el => el.platform.name),
             genres: el.genres.map(el => el.name),
-            image: el.background_image
+            image: el.background_image,
+            createdInDb: false
         }
     });
     return apiInfo;
@@ -74,13 +76,10 @@ router
     }
 })
 .get('/genres', async (req, res) =>{
-    const genresApi = await axios.get(URLgames,{headers: {"Accept-Encoding": "gzip,deflate,compress"}})
-    const genres = genresApi.data.results.map(el => el.genres);
-    const genresEach = genres.map(el => {
-       for(let i = 0; i < el.length; i++) {return el[i].name}
-    })
-    console.log(genresEach)
-    genresEach.forEach(el  => {
+    const genresApi = await axios.get(`https://api.rawg.io/api/genres?key=${API_KEY}`,{headers: {"Accept-Encoding": "gzip,deflate,compress"}})
+    const genres = genresApi.data.results.map(el => el.name);
+    
+    genres.forEach(el  => {
         Genre.findOrCreate({
             where: { name: el }
         })        

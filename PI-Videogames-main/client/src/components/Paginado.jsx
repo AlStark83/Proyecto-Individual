@@ -1,9 +1,10 @@
 import React from "react";
+// import { Link } from 'react-router-dom'
 
 export default function Paginado ({videogamesPerPage, allVideogames, paginado}){
     const pageNumbers = []
 
-    for (let i = 0; i >= Math.ceil(allVideogames/videogamesPerPage); i++) {
+    for (let i = 0; i <= Math.ceil(allVideogames/videogamesPerPage); i++) {
         pageNumbers.push(i+1)
     }
 
@@ -13,7 +14,7 @@ export default function Paginado ({videogamesPerPage, allVideogames, paginado}){
                 { pageNumbers &&
                 pageNumbers.map(number => (
                     <li className="number" key={number}>
-                        <a onclick={() => paginado(number)}>{number}</a>
+                        <button onClick={() => paginado(number)}>{number}</button>
                     </li>
                 ))}
             </ul>
